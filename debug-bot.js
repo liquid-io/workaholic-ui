@@ -57,7 +57,7 @@ function handleJobs(jobs){
         machines[job.pump].runJob(job, function(machine){
 
           job.finished = true;
-          mqtt.publish(worker, JSON.stringify({status: 'mix ready', job: job}))
+          mqtt.publish(worker, JSON.stringify({status: 'job complete', job: job}))
 
           console.log('machine (' + machine.id + ') finished job:', job);
 

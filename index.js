@@ -3,93 +3,38 @@ var chalk = require('chalk');
 var Controller = require('@matteo.collina/cocktail-control');
 var level = require('level')
 var parallel = require('fastparallel')();
+var db = level('./db');
 var EE = require('events').EventEmitter;
 var mqttToSocketIoEE = new EE();
 
-var cocktails = {
-  darkAndStormy: {
-    activations: [
-      {drink: 'ginger beer', time: 120000}, // milleseconds
-      {drink: 'rum', time: 40000},
-      {drink: 'lime', time: 20000}
-    ]
-  },
-  rumAndCoke: {
-    activations: [
-      {drink: 'coke', time: 60000}, // milleseconds
-      {drink: 'coke', time: 60000},
-      {drink: 'rum', time: 20000}
-    ]
-  },
-  moscowMule: {
-    activations: [
-      {drink: 'vodka', time: 60000}, // milleseconds
-      {drink: 'lime', time: 15000},
-      {drink: 'ginger beer', time: 120000}
-    ]
-  },
-  seabreeze: {
-    activations: [
-      {drink: 'vodka', time: 60000}, // milleseconds
-      {drink: 'cranberry', time: 60000},
-      {drink: 'pineapple', time: 120000}
-    ]
-  },
-  whiskeySour: {
-    activations: [
-      {drink: 'whiskey', time: 60000}, // milleseconds
-      {drink: 'lemon juice', time: 30000},
-      {drink: 'gomme syrup', time: 15000}
-    ]
-  },
-  crazyWolf: {
-    activations: [
-      {drink: 'whiskey', time: 60000}, // milleseconds
-      {drink: 'peach schnapps', time: 30000},
-      {drink: 'pinapple', time: 120000}
-    ]
-  },
-  crazy: {
-    activations: [
-      {drink: 'whiskey', time: 60000}, // milleseconds
-      {drink: 'pineapple', time: 60000},
-      {drink: 'coke', time: 160000}
-    ]
-  }
-}
-
-var defs = {
-  cocktails: cocktails,
-  workers: {
-    pi1: {
-      cocktails: ['crazy'] //cocktails a worker can make
-    },
-    pi2: {
-      cocktails: ['vodka', 'spritz']
-    }
-  }
-}
-
-var db = level('./db')
-
+var defs = require('./default-defs.js');
+var controller = {};
 var drinksServed = 0;
 
 db.get('numServed', function(err, num){
-  if(err) db.put('numServed', 0);
+  if(err) db.put('numServed', '0');
+  else drinksServed = Number(num);
+  mqttToSocketIoEE.emit('queue update');
+});
 
-  drinksServed = num;
-}
+db.get('defs', function(err, dbDefs){
+  if(err) db.put('defs', JSON.stringify(defs), function(err){
+    if(err) logging(chalk.red('problem putting default defitions in db'));
+  });
+  else defs = JSON.parse(dbDefs);
 
-var controller = Controller(db, defs)
+  controller = Controller(db, defs);
+  
+  ping();
+  mqttToSocketIoEE.emit('queue update')
+});
 
 var connectedWorkers = {};
-var pingInterval;
 
 mqtt.on('connect', function() {
   mqtt.subscribe('connections');
 
-  ping();
-  pingInterval = setInterval(ping, 10000)
+  setInterval(ping, 5000);
 
   logging(chalk.yellow('Server up!'));
 })
@@ -145,13 +90,17 @@ mqtt.on('message', function(topic, message) {
 
     if(message.status !== 'ping') resetWorkerDisconnectTimeout(worker);
 
-    if(message.status === 'mix ready'){
+    if(message.status === 'job complete'){
       var job = message.job;
+      if(message.job.name === 'clean'){
+        return;
+      }
       var msg = '(ID: '+job.id+') Mix ready for ' + job.name + '. They ordered a ' + job.cocktail + '.'
 
       logging(chalk.yellow(msg));
 
       drinksServed++;
+      db.put('numServed', '' + drinksServed)
 
       connectedWorkers[worker].jobs.forEach(function(workersJob){
         if(workersJob.id === job.id) workersJob = job;
@@ -217,7 +166,7 @@ function resetWorkerDisconnectTimeout(worker){
     logging(chalk.red('Worker disconnected: ' + worker));
     mqtt.unsubscribe(worker);
     delete connectedWorkers[worker];
-  }, 30000);
+  }, 15000);
 }
 
 function getAvailableDrinks(){
@@ -260,8 +209,9 @@ io.on('connection', function(socket){
 
   socket.on('add drink to queue', function(job){
     logging(chalk.yellow('adding a drink to the queue: ') + job.cocktail + '. ' + chalk.yellow('for: ') + job.name);
+    console.log(job);
     controller.enqueue(job)
-    console.log('controller', controller);
+    mqttToSocketIoEE.emit('queue update');
     sendQueue();
   });
 
@@ -289,6 +239,8 @@ io.on('connection', function(socket){
   };
 
   function sendQueue(){
+    socket.emit('drinks served', drinksServed);
+
     socket.emit('current queue', controller.queue);
   }
 
