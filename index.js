@@ -71,9 +71,16 @@ var defs = {
 }
 
 var db = level('./db')
-var controller = Controller(db, defs)
 
 var drinksServed = 0;
+
+db.get('numServed', function(err, num){
+  if(err) db.put('numServed', 0);
+
+  drinksServed = num;
+}
+
+var controller = Controller(db, defs)
 
 var connectedWorkers = {};
 var pingInterval;
@@ -254,6 +261,7 @@ io.on('connection', function(socket){
   socket.on('add drink to queue', function(job){
     logging(chalk.yellow('adding a drink to the queue: ') + job.cocktail + '. ' + chalk.yellow('for: ') + job.name);
     controller.enqueue(job)
+    console.log('controller', controller);
     sendQueue();
   });
 
