@@ -190,12 +190,12 @@ var path = require('path');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', function(req, res){
-  res.sendFile(__dirname+'/views/index.html');
+app.get('/status', function(req, res){
+  res.sendFile(__dirname+'/views/status.html');
 });
 
-app.get('/order', function(req, res){
-  res.sendFile(__dirname+'/views/order-ui.html');
+app.get('/', function(req, res){
+  res.sendFile(__dirname+'/views/index.html');
 });
 
 http.listen(4000, function(){

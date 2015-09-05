@@ -19,48 +19,8 @@
   <body ng-controller="MixerCtrl">
     <div class="jumbotron">
       <h1 style="text-align:center"> Number of cocktails mixed: {{drinksServed}} </h1>
-
-      <span ng-show="workers.length<1">
-        <div class="panel panel-danger">
-          <div class="panel-heading" style="text-align:center">
-            <h3>
-              No workers connected to server
-            </h3>
-          </div>
-        </div>
-      </span>
-
-      <span ng-show="workers.length>0" ng-repeat="worker in workers" class='job'>
-        <div class="panel panel-success" ng-show='worker.ready'>
-          <div class="panel-heading" style="text-align:center">
-            <h3>
-              Worker: {{worker.name}}. Ready: {{ worker.ready | worker_ready }}
-            </h3>
-          </div>
-          <div class="panel-body">
-            <span ng-repeat"machine in worker.cocktails">
-              <span></span>
-              <span></span>
-              {{worker}}
-            </span>
-          </div>
-        </div>
-        <div class="panel panel-warning" ng-show='!worker.ready'>
-          <div class="panel-heading">
-            <h3>
-              Worker: {{worker.name}}. Ready: {{ worker.ready | worker_ready }}
-            </h3>
-          </div>
-          <div class="panel-body">
-            <span>
-              {{worker}}
-            </span>
-          </div>
-
-        </div>
-      </span>
     </div>
-
+    
     <div class="jumbotron" ng-show='notifications.length > 0'>
       <span ng-repeat="notification in notifications" class='notification'>
           <div class="panel panel-success">
@@ -69,29 +29,31 @@
           </div>
       </span>
     </div>
-
-    <div class="container col-sm-12" id="mainContent">
-      <div class='panel panel-default'>
-        <div class='panel-heading'>
-          <h3 class="panel-title">
-            <a role="button" data-toggle="collapse" data-target="#currentMixingQueue">
-              Current mixxing queue
-            </a>
-          </h3>
-        </div>
-        <div id="currentMixingQueue" class='panel-collapse collapse in' style="max-height: 500px;overflow-y:scroll;">
-          <div class="panel-body">
-            <ul ng-repeat="job in queue">
-              <li>
-                (id: {{job.id}}) Drink for {{job.name}}. Drink: {{job.cocktail}}
-              </li>
-            </ul>
-            <div ng-show="queue.length < 1"><h4>Nothing queued!</h4></div>
-            <br><br>
-            <p>You can add more drinks to the queue using the form below.</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    
+    <div class="container center-block">
+    	<div ng-show="drinks.length > 0">
+    		<form novalidate class="form-horizontal" ng-show="drinks.length > 0">
+      		<div class="form-group">
+      		 <label for="name" class="col-sm-2 control-label">Name</label>
+  				  <div class="col-sm-10">
+  				    <input type="text" class="form-control" id="name" placeholder="Name" ng-model ="job.name">
+  				  </div>
+  				</div>
+  				<div class="form-group">
+      		 <label for="name" class="col-sm-2 control-label">Cocktail</label>
+  				  <div class="col-sm-10">
+  				    <select class="form-control" ng-model="job.cocktail" ng-options="drink for drink in drinks"></select>
+  				  </div>
+  				</div>
+      	  
+      	  <div class="pull-right">
+      	    <input class="btn btn-default" type="button" ng-click="resetForm()" value="Reset" />
+      	    <input class="btn btn-default" type="submit" ng-click="sendJob()" value="Save" />
+      	  </div>
+      	  <div ng-show="job.problem"  class="alert alert-warning" role="alert">{{job.problem}}<div>
+      	</form>
+    	</div>
+      
+   </div>
   </body>
 </html>
