@@ -46,6 +46,7 @@ helloApp.controller("MixerCtrl", function($scope, $http) {
 	socket.on('current work', function(currWork){
 		console.log('Current work:', currWork);
 		$scope.currWork = currWork;
+		$scope.$apply();
 	})
 
 	socket.on('notification', addNotification);
@@ -74,6 +75,7 @@ helloApp.controller("MixerCtrl", function($scope, $http) {
 
 	socket.on('drinks served', function(num){
 		$scope.drinksServed = num;
+		$scope.$apply();
 	})
 
 	function addNotification(notif){

@@ -18,11 +18,11 @@
   </head>
   <body ng-controller="MixerCtrl">
     <div class="jumbotron">
-      <h1 text-align="center"> Number of cocktails mixed: {{drinksServed}} </h1>
+      <h1 style="text-align:center"> Number of cocktails mixed: {{drinksServed}} </h1>
 
       <span ng-show="workers.length<1">
         <div class="panel panel-danger">
-          <div class="panel-heading">
+          <div class="panel-heading" style="text-align:center">
             <h3>
               No workers connected to server
             </h3>
@@ -32,7 +32,7 @@
 
       <span ng-show="workers.length>0" ng-repeat="worker in workers" class='job'>
         <div class="panel panel-success" ng-show='worker.ready'>
-          <div class="panel-heading">
+          <div class="panel-heading" style="text-align:center">
             <h3>
               Worker: {{worker.name}}. Ready: {{ worker.ready | worker_ready }}
             </h3>

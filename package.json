@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/thekemkid/workaholic-ui",
   "dependencies": {
-    "@matteo.collina/cocktail-control": "^1.0.0",
+    "@matteo.collina/cocktail-control": "^1.2.0",
     "chalk": "^1.1.1",
     "express": "^4.13.3",
     "fastparallel": "^1.6.1",

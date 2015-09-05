@@ -17,6 +17,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   </head>
   <body ng-controller="MixerCtrl">
+    <div class="jumbotron">
+      <h1 style="text-align:center"> Number of cocktails mixed: {{drinksServed}} </h1>
+    </div>
+    
     <div class="jumbotron" ng-show='notifications.length > 0'>
       <span ng-repeat="notification in notifications" class='notification'>
           <div class="panel panel-success">
