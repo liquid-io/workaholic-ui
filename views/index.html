@@ -17,10 +17,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   </head>
   <body ng-controller="MixerCtrl">
-    <div class="jumbotron" ng-show='workers.length > 0'>
+    <div class="jumbotron">
       <h1 text-align="center"> Number of cocktails mixed: {{drinksServed}} </h1>
 
-      <span ng-repeat="worker in workers" class='job'>
+      <span ng-show="workers.length<1">
+        <div class="panel panel-danger">
+          <div class="panel-heading">
+            <h3>
+              No workers connected to server
+            </h3>
+          </div>
+        </div>
+      </span>
+
+      <span ng-show="workers.length>0" ng-repeat="worker in workers" class='job'>
         <div class="panel panel-success" ng-show='worker.ready'>
           <div class="panel-heading">
             <h3>
@@ -83,21 +93,5 @@
         </div>
       </div>
     </div>
-
-    <div class="container col-sm-6 center-block">
-      <form novalidate class="simple-form" ng-show="drinks.length > 0">
-        Name: <input type="text" ng-model ="job.name" /><br />
-        Drink: 
-        <span ng-repeat='drink in drinks'>
-          <input type="radio" ng-model="job.cocktail" value="{{drink}}" class="jobCocktail"/> {{drink}}
-        </span>
-        <div class="pull-right">
-          <input class="btn btn-default" type="button" ng-click="resetForm()" value="Reset" />
-          <input class="btn btn-default" type="submit" ng-click="sendJob()" value="Save" />
-        </div>
-        <div ng-show="job.problem"  class="alert alert-warning" role="alert">{{job.problem}}<div>
-      </form>
-   </div>
-
   </body>
 </html>

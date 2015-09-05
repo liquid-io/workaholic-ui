@@ -111,6 +111,7 @@ mqtt.on('message', function(topic, message) {
 
       // if worker not in the definitions
       if(!defs.workers[worker]){
+        logging(chalk.red('worker ('+worker+') connected, but is not in the worker definitions, so we will ignore him.'));
         return;
       }
 
@@ -123,7 +124,7 @@ mqtt.on('message', function(topic, message) {
       }
 
       connectedWorkers[worker].ready = message.ready;
-
+      connectedWorkers[worker].jobs = [];
 
       resetWorkerDisconnectTimeout(worker);
     }
@@ -135,7 +136,7 @@ mqtt.on('message', function(topic, message) {
 
     if(!defs.workers[worker]) return;
 
-    resetWorkerDisconnectTimeout(worker);
+    if(message.status !== 'ping') resetWorkerDisconnectTimeout(worker);
 
     if(message.status === 'mix ready'){
       var job = message.job;
@@ -148,6 +149,7 @@ mqtt.on('message', function(topic, message) {
       connectedWorkers[worker].jobs.forEach(function(workersJob){
         if(workersJob.id === job.id) workersJob = job;
       });
+      if(connectedWorkers[worker].jobs.indexOf(job) < 0) connectedWorkers[worker].jobs.push(job);
       mqttToSocketIoEE.emit('drink mixed', {worker: worker, message: msg})
     }
     if(message.status === 'button pressed'){
@@ -183,6 +185,8 @@ function workerConnected(worker){
   connectedWorkers[worker] = {};
   connectedWorkers[worker].worker = defs.workers[worker];
 
+  mqttToSocketIoEE.emit('worker update', worker)
+
   mqtt.subscribe(worker); // subscribe to the worker
   
   // controller emitted some jobs for the worker
@@ -206,7 +210,7 @@ function resetWorkerDisconnectTimeout(worker){
     logging(chalk.red('Worker disconnected: ' + worker));
     mqtt.unsubscribe(worker);
     delete connectedWorkers[worker];
-  }, 30000) 
+  }, 30000);
 }
 
 function getAvailableDrinks(){
@@ -234,8 +238,12 @@ app.get('/', function(req, res){
   res.sendFile(__dirname+'/views/index.html');
 });
 
+app.get('/order', function(req, res){
+  res.sendFile(__dirname+'/views/order-ui.html');
+});
+
 http.listen(4000, function(){
-  logging(chalk.yellow('listening on *:3000'));
+  logging(chalk.yellow('listening on *:4000'));
 });
 
 io.on('connection', function(socket){  
@@ -244,7 +252,7 @@ io.on('connection', function(socket){
   setImmediate(sendCurrentWorkers);
 
   socket.on('add drink to queue', function(job){
-    logging(chalk.yellow('adding a drink to the queue: ') + job.cocktail + '. for ' + job.name);
+    logging(chalk.yellow('adding a drink to the queue: ') + job.cocktail + '. ' + chalk.yellow('for: ') + job.name);
     controller.enqueue(job)
     sendQueue();
   });

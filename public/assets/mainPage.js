@@ -56,16 +56,20 @@ helloApp.controller("MixerCtrl", function($scope, $http) {
 	})
 
 	socket.on('update worker', function (worker){
-		var workerIndex;
+		var workerIndex = -1;
 
 		$scope.workers.forEach(function (workaholic, index){
 			if(workaholic.name === worker.name){
 				workerIndex = index;
 			}
 		});
-
-		$scope.workers[workerIndex] = worker;
-		$scope.$apply();
+		if(workerIndex > -1){
+			$scope.workers[workerIndex] = worker;
+		  $scope.$apply();
+		} else {
+			$scope.workers.push(worker);
+		  $scope.$apply();
+		}
 	});
 
 	socket.on('drinks served', function(num){
