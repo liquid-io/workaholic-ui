@@ -48,7 +48,7 @@ var cocktails = {
       {drink: 'peach schnapps', time: 30000},
       {drink: 'pinapple', time: 120000}
     ]
-  }
+  },
   crazy: {
     activations: [
       {drink: 'whiskey', time: 60000}, // milleseconds
