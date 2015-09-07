@@ -39,6 +39,7 @@ mqtt.on('message', function(topic, message) {
 
   if(message.status === 'new jobs') handleJobs(message.jobs)
   if(message.status === 'ping') ping();
+  if(message.status === 'stop now') reset();
 });
 
 function ping () {
@@ -135,4 +136,11 @@ function initMachines() {
   })
 
   ready = true;
+}
+
+function reset(){
+  machines.forEach(function(machine){
+    machine.reset();
+  })
+  ping()
 }

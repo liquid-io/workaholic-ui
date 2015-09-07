@@ -2,7 +2,7 @@ var socket = io();
 
 var helloApp = angular.module("helloApp", ['ui']);
 
-helloApp.controller("MixerCtrl", function($scope, $http) {
+helloApp.controller("AdminCtrl", function($scope, $http) {
 
 	$scope.notifications = [];
 	$scope.queue = [];
@@ -10,11 +10,38 @@ helloApp.controller("MixerCtrl", function($scope, $http) {
 	$scope.drinks = [];
 	$scope.workers = [];
 	$scope.drinksServed = 0;
-	$scope.yourDrinks = [];
+	$scope.loggedIn = false;
+	$scope.credentials = {};
+	$scope.retryLogin = true;
+
+	socket.on('reconnect', function(){
+		if($scope.loggedIn) socket.emit('login admin', $scope.credentials);
+	})
+
+	$scope.clean = function(worker){
+		socket.emit('clean worker', {credentials: $scope.credentials, clean: worker.name});
+	}
+
+	$scope.stop = function(worker){
+		socket.emit('stop worker', {credentials: $scope.credentials, stop: worker.name});
+	}
+
+
+	$scope.login = function(){
+		if($scope.credentials.name && $scope.credentials.password && $scope.retryLogin){
+			socket.emit('login admin', $scope.credentials);
+		} else {
+			$scope.credentials.problem = 'unsuccessful login attempt. wait 10 secs before trying again.'
+			$scope.retryLogin = false
+
+		  setTimeout(function(){
+		  	delete $scope.credentials.problem; 
+		  	$scope.retryLogin = true;
+		  }, 10000);
+		}
+	}
 
 	$scope.sendJob = function(){
-		console.log('job');
-		console.log($scope.job);
 		if($scope.job.name !== '' && $scope.job.cocktail){
 			socket.emit('add drink to queue', $scope.job);
 			$scope.job.name = '';
@@ -25,33 +52,29 @@ helloApp.controller("MixerCtrl", function($scope, $http) {
 		}
 	}
 
+	socket.on('login reply', function(success){
+	  $scope.loggedIn = success;
+	  if(!success){
+			$scope.credentials.password = '';
+			$scope.credentials.problem = 'unsuccessful login attempt. wait 10 secs before trying again.'
+			$scope.retryLogin = false
+
+		  setTimeout(function(){
+		  	delete $scope.credentials.problem; 
+		  	$scope.retryLogin = true;
+		  }, 10000);
+	  }
+		$scope.$apply()
+	})
+
 	socket.on('current queue', function(queue){
 		console.log('queue:', queue);
 		$scope.queue = queue;
 		$scope.$apply()
 	});
 
-	socket.on('your drink', function(drink){
-		console.log(drink);
-		$scope.yourDrinks.push(drink);
-		$scope.$apply()
-	})
-
-	socket.on('delete drink', function(drink){
-		$scope.yourDrinks.forEach(function(aDrink, i){
-			if(drink == aDrink) {
-				$scope.yourDrinks.splice(i, 1);
-			}
-		});
-		socket.emit('delete')
-		$scope.$apply()
-	})
-
 	socket.on('available drinks', function(drinks){
-		if(!$scope.job.cocktail && drinks.length) $scope.job.cocktail = drinks[0].key
-		console.log('drinks:', drinks);
 		$scope.drinks = drinks;
-		if(!$scope.job.cocktail)$scope.job.cocktail = $scope.drinks[0];
 		$scope.$apply()
 	})
 
@@ -78,22 +101,19 @@ helloApp.controller("MixerCtrl", function($scope, $http) {
 		});
 		if(workerIndex > -1){
 			$scope.workers[workerIndex] = worker;
+		  $scope.$apply();
 		} else {
 			$scope.workers.push(worker);
-			socket.emit('get available drinks')
+		  $scope.$apply();
 		}
-		$scope.$apply();
 	});
 
 	socket.on('drinks served', function(num){
 		$scope.drinksServed = num;
 		$scope.$apply();
-	});
+	})
 
 	function addNotification(notif){
-		if(notif.message.finishedJob){
-
-		}
 		$scope.notifications.push({heading: notif.heading, message: notif.message});
 		$scope.$apply()
 

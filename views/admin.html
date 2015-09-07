@@ -11,16 +11,42 @@
     <script type="text/javascript" src="/assets/angularui.min.js"></script>
     <script type="text/javascript" src="/assets/bootstrap.min.js"></script>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript" src="/assets/mainPage.js"></script>
+    <script type="text/javascript" src="/assets/adminPage.js"></script>
 
 
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   </head>
-  <body ng-controller="MixerCtrl">
+  <body ng-controller="AdminCtrl">
     <div class="jumbotron">
       <h2 style="text-align:center"> Number of cocktails mixed: {{drinksServed}} </h2>
 
-      <span ng-show="workers.length<1">
+      <div class="container center-block">
+    		<div ng-show="!loggedIn">
+    			<form novalidate class="form-horizontal">
+    	  		<div class="form-group">
+    	  		 <label for="name" class="col-sm-2 control-label">Name</label>
+  					  <div class="col-sm-10">
+  					    <input type="text" class="form-control" id="name" placeholder="Name" ng-model ="credentials.name">
+  					  </div>
+  					</div>
+  					<div class="form-group">
+    	  		 <label for="name" class="col-sm-2 control-label">Password</label>
+  					  <div class="col-sm-10">
+  					    <input type="password" class="form-control" id="name" placeholder="Password" ng-model ="credentials.password">
+  					  </div>
+  					</div>
+  					
+    	  	  <div class="pull-right">
+    	  	    <input class="btn btn-default" type="submit" ng-click="login()" value="Save" />
+    	  	  </div>
+    	  	  <div ng-show="job.problem"  class="alert alert-warning" role="alert">{{job.problem}}</div>
+    	  	</form>
+    		</div>  
+   		</div>
+    </div>
+
+    <div ng-show="loggedIn">
+    	 <span ng-show="workers.length<1">
         <div class="panel panel-danger">
           <div class="panel-heading" style="text-align:center">
             <h3>
@@ -35,59 +61,34 @@
           <div class="panel-heading" style="text-align:center">
             <h4>
               Worker: {{worker.name}}. Ready: {{ worker.ready | worker_ready }}
+    	  	    <input ng-show="worker.ready" class="btn btn-danger" type="submit" ng-click="clean(worker)" value="Clean worker" />
             </h4>
           </div>
           <div class="panel-body">
-            <span ng-repeat"machine in worker.cocktails">
-              <span></span>
-              <span></span>
+            <div ng-repeat="machine in worker.worker.cocktails">
+            	
+              {{machine}}
+            </div>
               {{worker}}
-            </span>
           </div>
         </div>
         <div class="panel panel-warning" ng-show='!worker.ready'>
-          <div class="panel-heading">
+          <div class="panel-heading" style="text-align:center">
             <h4>
               Worker: {{worker.name}}. Ready: {{ worker.ready | worker_ready }}
+    	  	    <input ng-show="!worker.ready" class="btn btn-success" type="submit" ng-click="stop(worker)" value="Stop" />
             </h4>
           </div>
           <div class="panel-body">
-            <span>
+            <div ng-repeat="machine in worker.worker.cocktails">
+              {{machine}}
+            </div>
               {{worker}}
-            </span>
           </div>
 
         </div>
       </span>
     </div>
-
-    <div class="jumbotron" ng-show='notifications.length > 0'>
-      <span ng-repeat="notification in notifications" class='notification'>
-          <div class="panel panel-success">
-            <div class="panel-heading">{{notification.heading}}</div>
-            <div class="panel-body">{{notification.message}}</div>
-          </div>
-      </span>
-    </div>
-
-    <div class="container col-sm-12" id="mainContent">
-      <div class='panel panel-default'>
-        <div class='panel-heading'>
-          <h3 class="panel-title" style="text-align:center">Current mixxing queues</h3>
-        </div>
-        <div id="currentMixingQueue" class='panel-collapse collapse in' style="max-height: 500px;overflow-y:scroll;">
-          <div class="panel-body">
-            <ul ng-repeat="job in queue">
-              <li>
-                (id: {{job.id}}) Drink for {{job.name}}. Drink: {{job.cocktail}}
-              </li>
-            </ul>
-            <div ng-show="queue.length < 1"><h4>Nothing queued!</h4></div>
-            <br><br>
-            <p>You can add more drinks to the queue using the form below.</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    
   </body>
 </html>

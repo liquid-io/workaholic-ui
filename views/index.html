@@ -18,19 +18,28 @@
   </head>
   <body ng-controller="MixerCtrl">
     <div class="jumbotron">
-      <h1 style="text-align:center"> Number of cocktails mixed: {{drinksServed}} </h1>
+      <h2 style="text-align:center"> Number of cocktails mixed: {{drinksServed}} </h2>
     </div>
     
     <div class="jumbotron" ng-show='notifications.length > 0'>
       <span ng-repeat="notification in notifications" class='notification'>
           <div class="panel panel-success">
-            <div class="panel-heading">{{notification.heading}}</div>
+            <div class="panel-heading" style="text-align:center">{{notification.heading}}</div>
             <div class="panel-body">{{notification.message}}</div>
           </div>
       </span>
     </div>
+
+    <div ng-show="yourDrinks.length>0">
+      <div class="panel panel-success"><div class="panel-heading" style="text-align:center">Your Drinks</div></div>
+      <div class="panel panel-default" ng-repeat='drink in yourDrinks'>
+        <div class="panel-heading" style="text-align:center">
+          (ID: {{drink.id}}) {{drink.cocktail}} <input class="btn btn-default" type="submit" ng-click="deleteDrink(drink)" value="Delete" />
+        </div>
+      </div>
+    </div>
     
-    <div class="container center-block">
+    <div class="container">
     	<div ng-show="drinks.length > 0">
     		<form novalidate class="form-horizontal" ng-show="drinks.length > 0">
       		<div class="form-group">
@@ -42,18 +51,15 @@
   				<div class="form-group">
       		 <label for="name" class="col-sm-2 control-label">Cocktail</label>
   				  <div class="col-sm-10">
-  				    <select class="form-control" ng-model="job.cocktail" ng-options="drink for drink in drinks"></select>
+  				    <select class="form-control" ng-model="job.cocktail" ng-options="drink.name for drink in drinks"></select>
   				  </div>
   				</div>
-      	  
       	  <div class="pull-right">
-      	    <input class="btn btn-default" type="button" ng-click="resetForm()" value="Reset" />
       	    <input class="btn btn-default" type="submit" ng-click="sendJob()" value="Save" />
       	  </div>
       	  <div ng-show="job.problem"  class="alert alert-warning" role="alert">{{job.problem}}<div>
       	</form>
     	</div>
-      
    </div>
   </body>
 </html>
