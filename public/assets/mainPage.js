@@ -43,7 +43,7 @@ helloApp.controller("MixerCtrl", function($scope, $http) {
 				$scope.yourDrinks.splice(i, 1);
 			}
 		});
-		socket.emit('delete')
+		socket.emit('delete');
 		$scope.$apply()
 	})
 
@@ -52,7 +52,7 @@ helloApp.controller("MixerCtrl", function($scope, $http) {
 		console.log('drinks:', drinks);
 		$scope.drinks = drinks;
 		if(!$scope.job.cocktail)$scope.job.cocktail = $scope.drinks[0];
-		$scope.$apply()
+		$scope.$apply();
 	})
 
 	socket.on('current work', function(currWork){

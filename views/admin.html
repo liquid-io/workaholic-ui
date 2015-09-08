@@ -65,9 +65,13 @@
             </h4>
           </div>
           <div class="panel-body">
-            <div ng-repeat="machine in worker.worker.cocktails">
-            	
-              {{machine}}
+            <div class='container col-sm-6' ng-repeat="machine in worker.worker.cocktails">
+              <div class="panel panel-default" ng-show='machine.ready'>
+              	<div class="panel-heading">Machine: {{$index}}</div>
+              	<div class="panel-body">
+              		Current Job:
+              	</div>
+              </div>
             </div>
               {{worker}}
           </div>
@@ -80,8 +84,15 @@
             </h4>
           </div>
           <div class="panel-body">
-            <div ng-repeat="machine in worker.worker.cocktails">
-              {{machine}}
+            <div class='container col-sm-6' ng-repeat="machine in worker.worker.cocktails">
+              <div class="panel panel-default" ng-show='machine.ready'>
+              	<div class="panel-heading">
+              		Machine: {{$index}}. Current Drink: {{machine}}. <input ng-show="worker.ready" class="btn btn-danger" type="submit" ng-click="cleanMachine(worker, index)" value="Clean Machine" />
+              	</div>
+              	<div class="panel-body">
+              		Current Job:
+              	</div>
+              </div>
             </div>
               {{worker}}
           </div>

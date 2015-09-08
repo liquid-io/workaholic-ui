@@ -1,11 +1,14 @@
 module.exports = {
 	workers: {
-    pi1: {
-      cocktails: ['debug', 'debug'] //cocktails a worker can make
+    sherlock: {
+      cocktails: ['seabreeze', 'seabreeze'] //cocktails a worker can make
+    },hal: {
+      cocktails: ['dara2', 'dara1'] //cocktails a worker can make
+    },pi1: {
+      cocktails: ['seabreeze', 'seabreeze'] //cocktails a worker can make
+    },pi1: {
+      cocktails: ['seabreeze', 'seabreeze'] //cocktails a worker can make
     },
-    pi2: {
-      cocktails: ['vodka', 'spritz']
-    }
   },
   cocktails: {
 	  darkAndStormy: {
@@ -54,6 +57,22 @@ module.exports = {
 	      {drink: 'whiskey', time: 30000}, // milleseconds
 	      {drink: 'peach schnapps', time: 30000},
 	      {drink: 'pinapple', time: 120000}
+	    ]
+	  },
+	  dara1: {
+	  	name: 'Darragh 1',
+	    activations: [
+	      {drink: 'coke', time: 60000}, // milleseconds
+	      {drink: 'rum', time: 50000},
+	      {drink: 'coke', time: 60000}
+	    ]
+	  },
+	  dara2: {
+	  	name: 'Darragh 2',
+	    activations: [
+	      {drink: 'coke', time: 200000}, // milleseconds
+	      {drink: 'whiskey', time: 40000},
+	      {drink: 'cranberry', time: 40000}
 	    ]
 	  }
 	}
