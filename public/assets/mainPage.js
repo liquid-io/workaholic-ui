@@ -37,15 +37,16 @@ helloApp.controller("MixerCtrl", function($scope, $http) {
 		$scope.$apply()
 	})
 
-	socket.on('delete drink', function(drink){
-		$scope.yourDrinks.forEach(function(aDrink, i){
-			if(drink == aDrink) {
+	$scope.deleteDrink = function(drink){
+		console.log(drink);
+		for(var i = $scope.yourDrinks.length-1; i >= 0; i--){
+			var aDrink = $scope.yourDrinks[i];
+			if(drink.id == aDrink.id && drink.cocktail == aDrink.cocktail && drink.name == aDrink.name) {
 				$scope.yourDrinks.splice(i, 1);
 			}
-		});
-		socket.emit('delete');
-		$scope.$apply()
-	})
+		}
+		socket.emit('delete drink', drink);
+	}
 
 	socket.on('available drinks', function(drinks){
 		if(!$scope.job.cocktail && drinks.length) $scope.job.cocktail = drinks[0].key

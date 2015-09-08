@@ -7,6 +7,9 @@ var db = level('./db');
 var EE = require('events').EventEmitter;
 var mqttToSocketIoEE = new EE();
 
+var debugEnabled = (process.argv[2] == 'debug')
+logging(chalk.red('debugEnabled:') + debugEnabled)
+
 var defs = require('./default-defs.js');
 var controller = {};
 var drinksServed = 0;
@@ -76,6 +79,10 @@ mqtt.on('message', function(topic, message) {
 
       connectedWorkers[worker].ready = message.ready;
       connectedWorkers[worker].jobs = [];
+      connectedWorkers[worker].jobs.forEach(function(job){
+        if(connectedWorkers[worker].ready) job.ready = true;
+
+      });
 
       resetWorkerDisconnectTimeout(worker);
     }
@@ -91,7 +98,9 @@ mqtt.on('message', function(topic, message) {
 
     if(message.status === 'job complete'){
       var job = message.job;
-      if(message.job.name === 'clean'){
+      job.ready = true;
+
+      if(message.job.name === 'cleaning'){
         return;
       }
       var msg = '(ID: '+job.id+') Mix ready for ' + job.name + '. They ordered a ' + job.cocktail + '.'
@@ -101,8 +110,10 @@ mqtt.on('message', function(topic, message) {
       drinksServed++;
       db.put('numServed', '' + drinksServed)
 
-      connectedWorkers[worker].jobs.forEach(function(workersJob){
-        if(workersJob.id === job.id) workersJob = job;
+      connectedWorkers[worker].worker.cocktails.forEach(function(cocktail){
+        if(cocktail.pump === job.pump) {
+          cocktail.ready = true;
+        }
       });
       if(connectedWorkers[worker].jobs.indexOf(job) < 0) connectedWorkers[worker].jobs.push(job);
       mqttToSocketIoEE.emit('drink mixed', {worker: worker, message: msg, finishedJob: job})
@@ -151,6 +162,17 @@ function workerConnected(worker){
     connectedWorkers[worker].ready = false;
     connectedWorkers[worker].jobs = executables.jobs;
 
+    connectedWorkers[worker].worker.cocktails.forEach(function(cocktail){
+      connectedWorkers[worker].jobs.forEach(function(job){
+        if(cocktail.pump == job.pump) job.ready = false;
+      });
+    });
+    connectedWorkers[worker].jobs.forEach(function(job){
+      job.activations.forEach(function(job){
+        if(debugEnabled) job.time = job.time/3;
+      });
+    })
+
     mqtt.publish(worker, JSON.stringify({status: 'new jobs', jobs: executables.jobs}));
     mqttToSocketIoEE.emit('queue update');
     mqttToSocketIoEE.emit('worker update', worker)
@@ -176,8 +198,9 @@ function getAvailableDrinks(){
   Object.keys(connectedWorkers).forEach(function(worker){
     if(connectedWorkers[worker].worker && connectedWorkers[worker].worker.cocktails){
       connectedWorkers[worker].worker.cocktails.forEach(function(cocktailKey){
-        var cocktail = defs.cocktails[cocktailKey];
-        cocktail.key = cocktailKey
+        
+        var cocktail = defs.cocktails[cocktailKey.cocktail];
+        cocktail.key = cocktailKey.cocktail
         if(availableDrinks.indexOf(cocktail) < 0) availableDrinks.push(cocktail);
       });
     }
@@ -234,17 +257,19 @@ io.on('connection', function(socket){
   socket.on('login admin', loginAdmin);
   socket.on('clean worker', cleanWorker);
   socket.on('stop worker', stopWorker);
+  socket.on('delete drink', deleteDrink);
+
 
   mqttToSocketIoEE.on('drink mixed', drinkMixed);
   mqttToSocketIoEE.on('worker update', updateWorker);
   mqttToSocketIoEE.on('queue update', sendQueue);
 
   function loginAdmin(credentials){
-    logging(chalk.yellow('Login attempt'))
+    logging(chalk.cyan('Login attempt'))
 
     if(credentials.name === 'NodebotAdmin'){
        if(bcrypt.compareSync(credentials.password, hash)){
-        logging(chalk.yellow('An admin has logged in! yay!'))
+        logging(chalk.cyan('An admin has logged in! yay!'))
         socket.emit('login reply', true);
         loggedInAdmin = true;
       } else socket.emit('login reply', false);
@@ -252,10 +277,22 @@ io.on('connection', function(socket){
     else socket.emit('login reply', false);
   }
 
+  function deleteDrink(job){
+      logging(chalk.yellow('drink for deleting: ') + job);
+      for(var i = controller.queue.length-1; i >= 0; i--){
+        var aDrink = controller.queue[i];
+        if(job.id == aDrink.id && job.cocktail == aDrink.cocktail && job.name == aDrink.name) {
+          controller.queue.splice(i, 1);
+        }
+      }
+      mqttToSocketIoEE.emit('queue update');
+  }
+
   function stopWorker(obj){
     if(loggedInAdmin && obj.credentials.name === 'NodebotAdmin' && bcrypt.compareSync(obj.credentials.password, hash)){
+
       var worker = obj.stop
-      console.log('worker for stopping', worker);
+      logging(chalk.cyan('worker for stopping: ') + worker);
 
       if(connectedWorkers[worker]) connectedWorkers[worker].ready = true;
 
@@ -269,10 +306,12 @@ io.on('connection', function(socket){
   function cleanWorker(obj){
     if(loggedInAdmin && obj.credentials.name === 'NodebotAdmin' && bcrypt.compareSync(obj.credentials.password, hash)){
       var worker = obj.clean
-      console.log('worker for clean', worker);
+      logging(chalk.cyan('worker for cleaning: ') + worker);
 
       connectedWorkers[worker].ready = false;
-      connectedWorkers[worker].jobs = [{
+      controller.emit(worker, {
+        jobs: [
+          {
             id: -100,
             name: 'cleaning',
             cocktail: 'clean',
@@ -282,7 +321,8 @@ io.on('connection', function(socket){
               {drink: 'water', time: 60000},
               {drink: 'water', time: 60000}
             ]
-          }, {
+          }, 
+          {
             id: -100,
             name: 'cleaning',
             cocktail: 'clean',
@@ -293,39 +333,10 @@ io.on('connection', function(socket){
               {drink: 'water', time: 60000}
             ]
           },
-        ];
-  
-      mqtt.publish(worker, JSON.stringify({
-          status: 'new jobs', 
-          jobs:[{
-            id: -100,
-            name: 'cleaning',
-            cocktail: 'clean',
-            pump: 0,
-            activations: [
-              {drink: 'water', time: 60000}, // milleseconds
-              {drink: 'water', time: 60000},
-              {drink: 'water', time: 60000}
-            ]
-          }, {
-            id: -100,
-            name: 'cleaning',
-            cocktail: 'clean',
-            pump: 1,
-            activations: [
-              {drink: 'water', time: 60000}, // milleseconds
-              {drink: 'water', time: 60000},
-              {drink: 'water', time: 60000}
-            ]
-          },
-        ] 
-        })
-      );
+        ]
+      });
       mqttToSocketIoEE.emit('queue update');
       mqttToSocketIoEE.emit('worker update', worker)
-      {
-      
-    }
     }
   }
 
@@ -342,7 +353,6 @@ io.on('connection', function(socket){
     }
 
     var workaholic = sendWorker(worker);
-    console.log(workaholic);
     socket.emit('update worker', workaholic);
   };
 

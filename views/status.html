@@ -19,55 +19,15 @@
   <body ng-controller="MixerCtrl">
     <div class="jumbotron">
       <h2 style="text-align:center"> Number of cocktails mixed: {{drinksServed}} </h2>
-
-      <span ng-show="workers.length<1">
-        <div class="panel panel-danger">
-          <div class="panel-heading" style="text-align:center">
-            <h3>
-              No workers connected to server
-            </h3>
-          </div>
-        </div>
-      </span>
-
-      <span ng-show="workers.length>0" ng-repeat="worker in workers" class='job'>
-        <div class="panel panel-success" ng-show='worker.ready'>
-          <div class="panel-heading" style="text-align:center">
-            <h4>
-              Worker: {{worker.name}}. Ready: {{ worker.ready | worker_ready }}
-            </h4>
-          </div>
-          <div class="panel-body">
-            <span ng-repeat"machine in worker.cocktails">
-              <span></span>
-              <span></span>
-              {{worker}}
-            </span>
-          </div>
-        </div>
-        <div class="panel panel-warning" ng-show='!worker.ready'>
-          <div class="panel-heading">
-            <h4>
-              Worker: {{worker.name}}. Ready: {{ worker.ready | worker_ready }}
-            </h4>
-          </div>
-          <div class="panel-body">
-            <span>
-              {{worker}}
-            </span>
-          </div>
-
-        </div>
-      </span>
     </div>
 
     <div class="jumbotron" ng-show='notifications.length > 0'>
-      <span ng-repeat="notification in notifications" class='notification'>
+      <div class="container col-sm-6" ng-repeat="notification in notifications" class='notification'>
           <div class="panel panel-success">
             <div class="panel-heading">{{notification.heading}}</div>
             <div class="panel-body">{{notification.message}}</div>
           </div>
-      </span>
+      </div>
     </div>
 
     <div class="container col-sm-12" id="mainContent">
@@ -84,7 +44,65 @@
             </ul>
             <div ng-show="queue.length < 1"><h4>Nothing queued!</h4></div>
             <br><br>
-            <p>You can add more drinks to the queue using the form below.</p>
+            <p  ng-show="queue.length < 1">You can add more drinks to the queue on your own phone!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div ng-show="workers.length<1">
+      <div class="panel panel-danger">
+        <div class="panel-heading" style="text-align:center">
+          <h3>
+            No workers connected to server
+          </h3>
+        </div>
+      </div>
+    </div>
+
+    <div ng-show="workers.length>0" ng-repeat="worker in workers" class='job'>
+      <div class="panel panel-success" ng-show='worker.ready'>
+        <div class="panel-heading" style="text-align:center">
+          <h4>
+            Worker: {{worker.name}}. Ready: {{ worker.ready | worker_ready }}
+          </h4>
+        </div>
+        <div class="panel-body">
+          <div class="container col-sm-6" ng-repeat="machine in worker.worker.cocktails">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                Machine: {{machine.pump}}. Makes {{machine.cocktail}}. Ready: {{ worker.ready || machine.ready | worker_ready }}.
+              </div>
+            </div>
+            <div class="panel-heading">
+              <span ng-repeat="job in worker.jobs" ng-show="job.pump == machine.pump">
+                <h4> last job info: </h4>
+                {{ job.cocktail }} for {{job.name}} status. Ready: {{ job.ready | worker_ready }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-warning" ng-show='!worker.ready'>
+        <div class="panel-heading" style="text-align:center">
+          <h4>
+            Worker: {{worker.name}}. Ready: {{ worker.ready | worker_ready }}
+          </h4>
+        </div>
+        <div class="panel-body">
+          <div class="container col-sm-6" ng-repeat="machine in worker.worker.cocktails">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                Machine: {{machine.pump}}. Makes {{machine.cocktail}}. Ready: {{ worker.ready || machine.ready | worker_ready }}.
+              </div>
+            </div>
+            <div class="panel-heading">
+              <span ng-repeat="job in worker.jobs" ng-show="job.pump == machine.pump">
+                <h4> last job info: </h4>
+                {{ job.cocktail }} for {{job.name}} status. Ready: {{ job.ready | worker_ready }}
+              </span>
+            </div>
           </div>
         </div>
       </div>

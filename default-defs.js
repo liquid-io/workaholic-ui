@@ -1,13 +1,16 @@
 module.exports = {
 	workers: {
     sherlock: {
-      cocktails: ['seabreeze', 'seabreeze'] //cocktails a worker can make
-    },hal: {
-      cocktails: ['dara2', 'dara1'] //cocktails a worker can make
-    },pi1: {
-      cocktails: ['seabreeze', 'seabreeze'] //cocktails a worker can make
-    },pi1: {
-      cocktails: ['seabreeze', 'seabreeze'] //cocktails a worker can make
+      cocktails: [{cocktail: 'seabreeze', pump: 0}, {cocktail: 'darraghSpecial', pump: 1}] //cocktails a worker can make
+    },
+    hal: {
+      cocktails: [{cocktail: 'seabreeze', pump: 0}, {cocktail: 'darraghSpecial', pump: 1}] //cocktails a worker can make
+    },
+    betty: {
+      cocktails: [{cocktail: 'seabreeze', pump: 0}, {cocktail: 'darraghSpecial', pump: 1}] //cocktails a worker can make
+    },
+    boop: {
+      cocktails: [{cocktail: 'seabreeze', pump: 0}, {cocktail: 'darraghSpecial', pump: 1}] //cocktails a worker can make
     },
   },
   cocktails: {
@@ -59,21 +62,13 @@ module.exports = {
 	      {drink: 'pinapple', time: 120000}
 	    ]
 	  },
-	  dara1: {
-	  	name: 'Darragh 1',
+	  darraghSpecial: {
+	  	name: 'The Darragh Special',
 	    activations: [
-	      {drink: 'coke', time: 60000}, // milleseconds
-	      {drink: 'rum', time: 50000},
-	      {drink: 'coke', time: 60000}
+	      {drink: 'whiskey', time: 40000}, // milleseconds
+	      {drink: 'Coke', time: 90000},
+	      {drink: 'cranberry juice', time: 40000}
 	    ]
 	  },
-	  dara2: {
-	  	name: 'Darragh 2',
-	    activations: [
-	      {drink: 'coke', time: 200000}, // milleseconds
-	      {drink: 'whiskey', time: 40000},
-	      {drink: 'cranberry', time: 40000}
-	    ]
-	  }
 	}
 }

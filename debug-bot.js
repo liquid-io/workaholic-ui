@@ -97,6 +97,7 @@ function initMachines() {
         var pin = machine.pins[port];
         pin.low()
       })
+      machine.ready = true;
     }
   
     machine.start = function () {
@@ -138,9 +139,10 @@ function initMachines() {
   ready = true;
 }
 
-function reset(){
+function reset() {
   machines.forEach(function(machine){
     machine.reset();
   })
-  ping()
+  ready = true;
+  ping();
 }
