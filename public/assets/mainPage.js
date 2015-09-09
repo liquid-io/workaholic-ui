@@ -93,9 +93,16 @@ helloApp.controller("MixerCtrl", function($scope, $http) {
 
 	function addNotification(notif){
 		if(notif.message.finishedJob){
-
+			var index = -1;
+			$scope.myDrinks.forEach(function(drink, i){
+				if(drink.name == notif.message.finishedJob.name && drink.id == notif.message.finishedJob.id && drink.cocktail == notif.message.finishedJob.cocktail){
+					var index = i;
+				}
+			})
+			$scope.myDrinks.splice(i, 1);
 		}
 		$scope.notifications.push({heading: notif.heading, message: notif.message});
+
 		$scope.$apply()
 
 		setTimeout(function(){

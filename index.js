@@ -20,23 +20,14 @@ db.get('numServed', function(err, num){
   mqttToSocketIoEE.emit('queue update');
 });
 
-db.get('defs', function(err, dbDefs){
-  if(err) db.put('defs', JSON.stringify(defs), function(err){
-    if(err) logging(chalk.red('problem putting default defitions in db'));
-  });
-  else defs = JSON.parse(dbDefs);
-
-  controller = Controller(db, defs);
-  
-  ping();
-  mqttToSocketIoEE.emit('queue update')
-});
+controller = Controller(db, defs);
 
 var connectedWorkers = {};
 
 mqtt.on('connect', function() {
   mqtt.subscribe('connections');
 
+  ping();
   setInterval(ping, 5000);
 
   logging(chalk.yellow('Server up!'));
@@ -159,6 +150,7 @@ function workerConnected(worker){
   
   // controller emitted some jobs for the worker
   controller.on(worker, function(executables){
+    logging(chalk.red('Work to be sent:') + executables)
     connectedWorkers[worker].ready = false;
     connectedWorkers[worker].jobs = executables.jobs;
 
@@ -169,7 +161,7 @@ function workerConnected(worker){
     });
     connectedWorkers[worker].jobs.forEach(function(job){
       job.activations.forEach(function(job){
-        if(debugEnabled) job.time = job.time/3;
+        if(debugEnabled) job.time = job.time/2;
       });
     })
 
@@ -263,6 +255,12 @@ io.on('connection', function(socket){
   mqttToSocketIoEE.on('drink mixed', drinkMixed);
   mqttToSocketIoEE.on('worker update', updateWorker);
   mqttToSocketIoEE.on('queue update', sendQueue);
+
+  socket.on('close', function () {
+    mqttToSocketIoEE.removeListener('drink mixed', drinkMixed);
+    mqttToSocketIoEE.removeListener('worker update', updateWorker);
+    mqttToSocketIoEE.removeListener('queue update', sendQueue);
+  })
 
   function loginAdmin(credentials){
     logging(chalk.cyan('Login attempt'))
@@ -368,7 +366,6 @@ io.on('connection', function(socket){
 
   function sendCurrentWorkers(){
     var workers = []
-
     Object.keys(connectedWorkers).forEach(function(worker){
       workers.push(sendWorker(worker));
     });

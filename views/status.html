@@ -35,16 +35,23 @@
         <div class='panel-heading'>
           <h3 class="panel-title" style="text-align:center">Current mixxing queues</h3>
         </div>
-        <div id="currentMixingQueue" class='panel-collapse collapse in' style="max-height: 500px;overflow-y:scroll;">
+        <div id="currentMixingQueue" style="max-height: 500px;overflow-y:scroll;">
           <div class="panel-body">
-            <ul ng-repeat="job in queue">
-              <li>
-                (id: {{job.id}}) Drink for {{job.name}}. Drink: {{job.cocktail}}
-              </li>
-            </ul>
+            <div class="container col-sm-2" ng-repeat="drink in drinks">
+              Drink queue for {{drink.name}}
+
+              <ul ng-repeat="job in queue">
+                <span ng-show="job.cocktail == drink.key">
+                  <li>
+                    {{drink.name}} for {{job.name}}
+                  </li>
+                </span>
+              </ul>
+            </div>
+            
             <div ng-show="queue.length < 1"><h4>Nothing queued!</h4></div>
             <br><br>
-            <p  ng-show="queue.length < 1">You can add more drinks to the queue on your own phone!</p>
+            <p ng-show="queue.length < 1">You can add more drinks to the queue on your own phone!</p>
           </div>
         </div>
       </div>

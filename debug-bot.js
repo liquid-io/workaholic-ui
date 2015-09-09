@@ -10,13 +10,13 @@ var when = require('when-conditional');
 
 var machines = [
   {
-    id: 1,
+    id: 0,
     ports: ['GPIO24', 'GPIO9', 'GPIO18'],
     ready: true,
     pins: {}
   },
   {
-    id: 2,
+    id: 1,
     ports : ['GPIO22', 'GPIO23', 'GPIO27'],
     ready: true,
     pins: {}
