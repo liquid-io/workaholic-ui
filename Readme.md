@@ -17,3 +17,6 @@ The server also sends realtime info to the client ui using socket.io. The server
 ##Contributing:
 All contributions are welcome.
 
+## License
+
+MIT
